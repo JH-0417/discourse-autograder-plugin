@@ -1,0 +1,19 @@
+plugins:
+  autograder_enabled:
+    default: true
+    client: true
+
+  autograder_liver_category_id:
+    default: 0
+    type: integer
+    client: false
+
+  autograder_lung_category_id:
+    default: 0
+    type: integer
+    client: false
+
+  autograder_dual_participation_bonus:
+    default: 5
+    type: integer
+    client: false
