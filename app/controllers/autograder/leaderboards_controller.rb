@@ -5,8 +5,12 @@ module ::Autograder
     requires_plugin PLUGIN_NAME
 
     def show
+      individual = Leaderboard.individual
+
       render json: {
-        leaderboard: Leaderboard.individual,
+        leaderboard: individual,
+        individual: individual,
+        teams: Leaderboard.teams(individual),
       }
     end
   end
