@@ -49,5 +49,43 @@ module Autograder
         row.merge(rank: index + 1)
       end
     end
+
+    def self.teams(individual_rows = individual)
+      return [] if individual_rows.empty?
+
+      affiliations =
+        UserCustomField
+          .where(
+            user_id: individual_rows.map { |row| row[:user_id] },
+            name: "affiliation",
+          )
+          .pluck(:user_id, :value)
+          .to_h
+
+      rows =
+        individual_rows
+          .group_by do |row|
+            affiliation = affiliations[row[:user_id]].to_s.strip
+            affiliation.presence || row[:username]
+          end
+          .map do |team_name, members|
+            {
+              team_name: team_name,
+              members: members.map { |member| member[:username] }.sort,
+              member_count: members.length,
+              score: members.sum { |member| member[:score].to_f }.round(2),
+              bonus: members.sum { |member| member[:bonus].to_f }.round(2),
+              total_score: members.sum { |member| member[:total_score].to_f }.round(2),
+              solved_topics: members.sum { |member| member[:solved_topics].to_i },
+            }
+          end
+          .sort_by do |row|
+            [-row[:total_score], -row[:solved_topics], row[:team_name]]
+          end
+
+      rows.each_with_index.map do |row, index|
+        row.merge(rank: index + 1)
+      end
+    end
   end
 end
