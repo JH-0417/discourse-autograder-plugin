@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auto Grader 랭킹</title>
+  <style>
+    :root {
+      --background: #f6f7fb;
+      --surface: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --gold: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .page {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 64px;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    h1, h2 { margin: 0; }
+
+    h1 { font-size: 30px; }
+
+    h2 {
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+
+    .description {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .forum-link {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .section {
+      margin-top: 28px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 620px;
+    }
+
+    th, td {
+      padding: 13px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .rank {
+      width: 70px;
+      font-weight: 800;
+    }
+
+    .top-rank {
+      color: var(--gold);
+    }
+
+    .score {
+      font-weight: 750;
+      color: var(--primary);
+    }
+
+    .members {
+      max-width: 280px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .empty {
+      margin: 0;
+      padding: 28px 0;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      .page { width: min(100% - 24px, 1100px); padding-top: 24px; }
+      .page-header { align-items: flex-start; flex-direction: column; }
+      .section { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="page-header">
+      <div>
+        <h1>Auto Grader 랭킹</h1>
+        <p class="description">채점 완료된 제출을 기준으로 계산한 개인 및 팀 랭킹입니다.</p>
+      </div>
+      <a class="forum-link" href="/">포럼으로 돌아가기</a>
+    </header>
+
+    <section class="section">
+      <h2>개인 랭킹</h2>
+
+      <% if @individual.any? %>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>순위</th>
+                <th>사용자</th>
+                <th>해결 주제</th>
+                <th>기본 점수</th>
+                <th>보너스</th>
+                <th>총점</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @individual.each do |row| %>
+                <tr>
+                  <td class="rank <%= "top-rank" if row[:rank] <= 3 %>"><%= row[:rank] %></td>
+                  <td><%= row[:username] %></td>
+                  <td><%= row[:solved_topics] %></td>
+                  <td><%= format("%.2f", row[:score]) %></td>
+                  <td><%= format("%.2f", row[:bonus]) %></td>
+                  <td class="score"><%= format("%.2f", row[:total_score]) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="empty">아직 채점 완료된 제출 기록이 없습니다.</p>
+      <% end %>
+    </section>
+
+    <section class="section">
+      <h2>팀 랭킹</h2>
+
+      <% if @teams.any? %>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>순위</th>
+                <th>팀</th>
+                <th>인원</th>
+                <th>구성원</th>
+                <th>해결 주제</th>
+                <th>총점</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @teams.each do |team| %>
+                <tr>
+                  <td class="rank <%= "top-rank" if team[:rank] <= 3 %>"><%= team[:rank] %></td>
+                  <td><%= team[:team_name] %></td>
+                  <td><%= team[:member_count] %></td>
+                  <td class="members"><%= team[:members].join(", ") %></td>
+                  <td><%= team[:solved_topics] %></td>
+                  <td class="score"><%= format("%.2f", team[:total_score]) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="empty">아직 팀 랭킹을 계산할 제출 기록이 없습니다.</p>
+      <% end %>
+    </section>
+  </main>
+</body>
+</html>

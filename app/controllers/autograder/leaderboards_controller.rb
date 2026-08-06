@@ -4,6 +4,13 @@ module ::Autograder
   class LeaderboardsController < ::ApplicationController
     requires_plugin PLUGIN_NAME
 
+    def index
+      @individual = Leaderboard.individual
+      @teams = Leaderboard.teams(@individual)
+
+      render template: "autograder/leaderboards/index", layout: false
+    end
+
     def show
       individual = Leaderboard.individual
 
