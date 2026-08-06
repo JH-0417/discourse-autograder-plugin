@@ -13,14 +13,6 @@ end
 
 require_relative "lib/autograder/engine"
 
-Autograder::Engine.routes.draw do
-  get "/leaderboard" => "leaderboards#show"
-end
-
-Discourse::Application.routes.append do
-  mount ::Autograder::Engine, at: "/autograder"
-end
-
 after_initialize do
   require_relative "app/models/autograder_submission"
   require_relative "lib/autograder/leaderboard"
