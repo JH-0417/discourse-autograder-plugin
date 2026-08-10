@@ -1,3 +1,4 @@
+
 import { apiInitializer } from "discourse/lib/api";
 import dIcon from "discourse-common/helpers/d-icon";
 
@@ -10,6 +11,8 @@ export default apiInitializer("1.34.0", (api) => {
           id="autograder-rankings-link"
           class="icon"
           href="/autograder/rankings"
+          target="_blank"
+          rel="noopener"
           title="랭킹"
           aria-label="랭킹"
         >
