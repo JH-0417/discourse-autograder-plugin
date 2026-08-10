@@ -22,3 +22,9 @@ plugins:
     default: ""
     type: string
     client: false
+
+  autograder_grader_auth_token:
+    default: ""
+    type: string
+    client: false
+    secret: true

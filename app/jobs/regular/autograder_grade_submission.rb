@@ -8,8 +8,10 @@ module Jobs
     def execute(args)
       submission = AutograderSubmission.find(args[:submission_id])
       endpoint = SiteSetting.autograder_grader_url
+      auth_token = SiteSetting.autograder_grader_auth_token
 
       raise "채점 서버 주소가 설정되지 않았습니다." if endpoint.blank?
+      raise "채점 서버 인증 토큰이 설정되지 않았습니다." if auth_token.blank?
 
       submission.update!(
         status: "processing",
@@ -32,6 +34,7 @@ module Jobs
       request = Net::HTTP::Post.new(uri)
       request["Content-Type"] = "application/json"
       request["X-Discourse-Event"] = "post_created"
+      request["Authorization"] = "Bearer #{auth_token}"
       request.body = JSON.generate(payload)
 
       response = Net::HTTP.start(
