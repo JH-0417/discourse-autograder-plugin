@@ -60,6 +60,7 @@ module Jobs
         result_data: result,
       )
 
+      Autograder::GamificationSync.call(submission.user)
       publish_result_comment(post, submission)
     rescue StandardError => e
       submission&.update(

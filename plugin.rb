@@ -16,6 +16,8 @@ require_relative "lib/autograder/engine"
 after_initialize do
   require_relative "app/models/autograder_submission"
   require_relative "lib/autograder/leaderboard"
+require_relative "app/models/autograder_gamification_sync"
+require_relative "lib/autograder/gamification_sync"
   require_relative "app/jobs/regular/autograder_grade_submission"
 
   require_dependency File.expand_path(
