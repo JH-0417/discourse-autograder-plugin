@@ -13,23 +13,38 @@ module ::Autograder
     before_action :prepend_plugin_view_path, only: :index
 
     def index
-      @individual = Leaderboard.individual
-      @teams = Leaderboard.teams(@individual)
+      load_leaderboard
 
       render template: "autograder/leaderboards/index", layout: false
     end
 
     def show
-      individual = Leaderboard.individual
+      load_leaderboard
 
       render json: {
-        leaderboard: individual,
-        individual: individual,
-        teams: Leaderboard.teams(individual),
+        selected_category_id: @selected_category&.id,
+        selected_category_name: @selected_category&.name || "종합",
+        leaderboard: @individual,
+        individual: @individual,
+        teams: @teams,
       }
     end
 
     private
+
+    def load_leaderboard
+      @categories =
+        Category
+          .where(id: Leaderboard.target_category_ids)
+          .order(:id)
+          .to_a
+
+      requested_category_id = params[:category_id].to_i
+      @selected_category = @categories.find { |category| category.id == requested_category_id }
+
+      @individual = Leaderboard.individual(category_id: @selected_category&.id)
+      @teams = Leaderboard.teams(@individual)
+    end
 
     def prepend_plugin_view_path
       prepend_view_path Rails.root.join("plugins", PLUGIN_NAME, "app", "views")

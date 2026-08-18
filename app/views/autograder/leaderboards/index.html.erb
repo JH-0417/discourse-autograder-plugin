@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Auto Grader 랭킹</title>
+  <title><%= @selected_category ? "#{@selected_category.name} 랭킹" : "Auto Grader 랭킹" %></title>
   <style>
     :root {
       --background: #f6f7fb;
@@ -12,6 +12,7 @@
       --muted: #6b7280;
       --border: #e5e7eb;
       --primary: #2563eb;
+      --primary-light: #eff6ff;
       --gold: #f59e0b;
     }
 
@@ -35,7 +36,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     h1, h2 { margin: 0; }
@@ -59,6 +60,35 @@
       white-space: nowrap;
     }
 
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .tab {
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .tab:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .tab.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #ffffff;
+    }
+
     .section {
       margin-top: 28px;
       padding: 24px;
@@ -66,6 +96,12 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+
+    .section-note {
+      margin: -8px 0 16px;
+      color: var(--muted);
+      font-size: 14px;
     }
 
     .table-wrap {
@@ -125,6 +161,7 @@
       .page { width: min(100% - 24px, 1100px); padding-top: 24px; }
       .page-header { align-items: flex-start; flex-direction: column; }
       .section { padding: 16px; }
+      .tab { padding: 8px 12px; }
     }
   </style>
 </head>
@@ -133,13 +170,33 @@
     <header class="page-header">
       <div>
         <h1>Auto Grader 랭킹</h1>
-        <p class="description">채점 완료된 제출을 기준으로 계산한 개인 및 팀 랭킹입니다.</p>
+        <p class="description">
+          <% if @selected_category %>
+            <%= @selected_category.name %> 카테고리의 채점 완료 제출을 기준으로 계산한 랭킹입니다.
+          <% else %>
+            모든 카테고리의 채점 완료 제출과 참여 보너스를 합산한 종합 랭킹입니다.
+          <% end %>
+        </p>
       </div>
       <a class="forum-link" href="/">포럼으로 돌아가기</a>
     </header>
 
+    <nav class="tabs" aria-label="랭킹 카테고리 선택">
+      <a class="tab <%= "active" unless @selected_category %>" href="/autograder/rankings">종합</a>
+      <% @categories.each do |category| %>
+        <a
+          class="tab <%= "active" if @selected_category&.id == category.id %>"
+          href="/autograder/rankings?category_id=<%= category.id %>"
+        ><%= category.name %></a>
+      <% end %>
+    </nav>
+
     <section class="section">
-      <h2>개인 랭킹</h2>
+      <h2><%= @selected_category ? "#{@selected_category.name} 개인 랭킹" : "개인 랭킹" %></h2>
+
+      <% if @selected_category %>
+        <p class="section-note">카테고리별 랭킹에는 다중 카테고리 참여 보너스가 포함되지 않습니다.</p>
+      <% end %>
 
       <% if @individual.any? %>
         <div class="table-wrap">
@@ -149,9 +206,13 @@
                 <th>순위</th>
                 <th>사용자</th>
                 <th>해결 주제</th>
-                <th>기본 점수</th>
-                <th>보너스</th>
-                <th>총점</th>
+                <% if @selected_category %>
+                  <th>카테고리 점수</th>
+                <% else %>
+                  <th>기본 점수</th>
+                  <th>보너스</th>
+                  <th>총점</th>
+                <% end %>
               </tr>
             </thead>
             <tbody>
@@ -160,21 +221,25 @@
                   <td class="rank <%= "top-rank" if row[:rank] <= 3 %>"><%= row[:rank] %></td>
                   <td><%= row[:username] %></td>
                   <td><%= row[:solved_topics] %></td>
-                  <td><%= format("%.2f", row[:score]) %></td>
-                  <td><%= format("%.2f", row[:bonus]) %></td>
-                  <td class="score"><%= format("%.2f", row[:total_score]) %></td>
+                  <% if @selected_category %>
+                    <td class="score"><%= format("%.2f", row[:total_score]) %></td>
+                  <% else %>
+                    <td><%= format("%.2f", row[:score]) %></td>
+                    <td><%= format("%.2f", row[:bonus]) %></td>
+                    <td class="score"><%= format("%.2f", row[:total_score]) %></td>
+                  <% end %>
                 </tr>
               <% end %>
             </tbody>
           </table>
         </div>
       <% else %>
-        <p class="empty">아직 채점 완료된 제출 기록이 없습니다.</p>
+        <p class="empty">이 카테고리에는 아직 채점 완료된 제출 기록이 없습니다.</p>
       <% end %>
     </section>
 
     <section class="section">
-      <h2>팀 랭킹</h2>
+      <h2><%= @selected_category ? "#{@selected_category.name} 팀 랭킹" : "팀 랭킹" %></h2>
 
       <% if @teams.any? %>
         <div class="table-wrap">
@@ -186,7 +251,7 @@
                 <th>인원</th>
                 <th>구성원</th>
                 <th>해결 주제</th>
-                <th>총점</th>
+                <th><%= @selected_category ? "카테고리 점수" : "총점" %></th>
               </tr>
             </thead>
             <tbody>
@@ -204,7 +269,7 @@
           </table>
         </div>
       <% else %>
-        <p class="empty">아직 팀 랭킹을 계산할 제출 기록이 없습니다.</p>
+        <p class="empty">이 카테고리에는 아직 팀 랭킹을 계산할 제출 기록이 없습니다.</p>
       <% end %>
     </section>
   </main>

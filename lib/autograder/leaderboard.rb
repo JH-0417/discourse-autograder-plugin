@@ -2,18 +2,25 @@
 
 module Autograder
   class Leaderboard
-    def self.individual
-      target_category_ids =
-        SiteSetting.autograder_category_ids
-          .to_s
-          .split("|")
-          .map(&:to_i)
-          .reject(&:zero?)
+    def self.target_category_ids
+      SiteSetting.autograder_category_ids
+        .to_s
+        .split("|")
+        .map(&:to_i)
+        .reject(&:zero?)
+    end
+
+    def self.individual(category_id: nil)
+      target_category_ids = self.target_category_ids
+      selected_category_id = category_id.to_i if category_id.present?
+      return [] if selected_category_id && !target_category_ids.include?(selected_category_id)
+
+      ranking_category_ids = selected_category_id ? [selected_category_id] : target_category_ids
 
       completed_submissions =
         AutograderSubmission
           .completed
-          .where(category_id: target_category_ids)
+          .where(category_id: ranking_category_ids)
           .includes(:user)
           .to_a
 
@@ -35,8 +42,12 @@ module Autograder
               (category_ids & target_category_ids).length
 
             participation_bonus =
-              [participated_category_count - 1, 0].max *
-                SiteSetting.autograder_additional_category_bonus.to_f
+              if selected_category_id
+                0.0
+              else
+                [participated_category_count - 1, 0].max *
+                  SiteSetting.autograder_additional_category_bonus.to_f
+              end
 
             {
               user_id: user_id,
