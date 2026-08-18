@@ -29,12 +29,14 @@ require_relative "lib/autograder/gamification_sync"
     next unless SiteSetting.autograder_enabled
     next if post.post_number == 1
 
-    category_ids = [
-      SiteSetting.autograder_liver_category_id.to_i,
-      SiteSetting.autograder_lung_category_id.to_i,
-    ].reject(&:zero?)
+    target_category_ids =
+      SiteSetting.autograder_category_ids
+        .to_s
+        .split("|")
+        .map(&:to_i)
+        .reject(&:zero?)
 
-    next unless category_ids.include?(post.topic.category_id)
+    next unless target_category_ids.include?(post.topic.category_id)
 
     csv_upload = post.uploads.find do |upload|
       upload.original_filename.to_s.downcase.end_with?(".csv")

@@ -3,19 +3,15 @@ plugins:
     default: true
     client: true
 
-  autograder_liver_category_id:
-    default: 7
-    type: integer
+  autograder_category_ids:
+    default: "7|8|9|10|11|12|13"
+    type: list
+    list_type: category
     client: false
 
-  autograder_lung_category_id:
-    default: 8
-    type: integer
-    client: false
-
-  autograder_dual_participation_bonus:
-    default: 5
-    type: integer
+  autograder_additional_category_bonus:
+    default: 0.5
+    type: float
     client: false
 
   autograder_grader_url:

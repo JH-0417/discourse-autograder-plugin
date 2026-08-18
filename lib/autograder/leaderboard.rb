@@ -3,10 +3,12 @@
 module Autograder
   class Leaderboard
     def self.individual
-      target_category_ids = [
-        SiteSetting.autograder_liver_category_id.to_i,
-        SiteSetting.autograder_lung_category_id.to_i,
-      ].reject(&:zero?)
+      target_category_ids =
+        SiteSetting.autograder_category_ids
+          .to_s
+          .split("|")
+          .map(&:to_i)
+          .reject(&:zero?)
 
       completed_submissions =
         AutograderSubmission
@@ -29,16 +31,19 @@ module Autograder
             category_ids = submissions.map(&:category_id).uniq
             score = submissions.sum { |submission| submission.score.to_f * 100 }
 
-            dual_bonus =
-              (category_ids & target_category_ids).length == 2 ?
-                SiteSetting.autograder_dual_participation_bonus.to_f : 0.0
+            participated_category_count =
+              (category_ids & target_category_ids).length
+
+            participation_bonus =
+              [participated_category_count - 1, 0].max *
+                SiteSetting.autograder_additional_category_bonus.to_f
 
             {
               user_id: user_id,
               username: user.username,
               score: score.round(2),
-              bonus: dual_bonus,
-              total_score: (score + dual_bonus).round(2),
+              bonus: participation_bonus.round(2),
+              total_score: (score + participation_bonus).round(2),
               solved_topics: submissions.map(&:topic_id).uniq.count,
               category_ids: category_ids,
             }
