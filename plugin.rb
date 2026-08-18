@@ -28,6 +28,7 @@ require_relative "lib/autograder/gamification_sync"
   DiscourseEvent.on(:post_created) do |post, *_args|
     next unless SiteSetting.autograder_enabled
     next if post.post_number == 1
+    next if post.topic.category&.topic_id == post.topic_id
 
     target_category_ids =
       SiteSetting.autograder_category_ids
