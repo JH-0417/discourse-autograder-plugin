@@ -20,7 +20,8 @@ module Autograder
       completed_submissions =
         AutograderSubmission
           .completed
-          .where(category_id: ranking_category_ids)
+          .joins(:topic)
+          .where(topics: { category_id: ranking_category_ids })
           .includes(:user)
           .to_a
 
